@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+
+<!-- page title -->
+{% block title %} BETIFY {% endblock %}
+
+<!-- page content -->
+{% block content %}
+
+<!-- container fluid -->
+<div class="container-fluid">
+
+    <!-- row -->
+    <div class="row mt-2">
+        <!-- FIXTURES -->
+        <div class="col-6">
+
+            <!-- Modal -->
+            <script>
+            const myModal = document.getElementById('myModal')
+            const myInput = document.getElementById('myInput')
+            
+            myModal.addEventListener('shown.bs.modal', () => {
+              myInput.focus()
+            })
+            </script>
+                      
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Your Current Bet Selections</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">                    
+                    <table class="table">
+                        <tr>
+                            <th>Home</th>
+                            <th>Away</th>
+                            <th>Bet</th>
+                            <th>Delete</th>
+                        </tr>
+                        {% for selection in selections %}
+                        <tr>    
+                            <td>{{selection.Home_Team}}</td>
+                            <td>{{selection.Away_Team}}</td>
+                            <td>{{selection.Bet}}</td>
+                            <td><i class="fa-solid fa-trash"></i></td>
+                        </tr>                            
+                        {% endfor %}
+                    </table>
+
+
+                    <form action="{{ url_for('deleteselection') }}" method="post">
+                        <table class="table">
+                            
+                        {% for selection in selections %}
+                        <tr>    
+                            <td>{{selection.Home_Team}}</td>
+                            <td>{{selection.Away_Team}}</td>
+                            <td>{{selection.Bet}}</td>
+                            <td><input type="text" name="projectFilePath" value="{{selection.Home_Team}}"><i class="fa-solid fa-trash"></i></td>
+                        </tr>                            
+                        {% endfor %}
+                        </table>
+
+                        <!-- Project file path: <input type="text" name="projectFilePath" value="1"><br>
+                        <input type="submit" value="Submit"> -->
+                    </form>
+                    
+                </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                
+                <div class="row">
+                    <div class="col-sm-2 col-xs-2">
+                        <h3>Fixtures</h3>
+                    </div>
+                    <div class="col-sm-2 col-xs-2">
+                    <div class="form-inline">
+                    <!-- Dates dropdown menu -->
+                    <div class="dropdown">
+                        Date:
+                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if fd %}{{fd}}{% else %}All{% endif %}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                            <li>
+                                <a class="dropdown-item {% if not fd %}active{% endif %}" href="?fd=All&fl={{fl}}">All</a>
+                            </li>  
+                            {% for fixturedate in fixturedates %}
+                            <li>
+                                <a class="dropdown-item {% if fd == fixturedate.Match_Date %}active{% endif %}" href="?fd={{fixturedate.Match_Date}}&fl={{fl}}">{{fixturedate.Match_Date}}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    </div>
+                    </div>
+                    <div class="col-sm-3 col-xs-3">
+                        <div class="dropdown-container" style="display: flex;">
+                            <!-- leagues dropdown menu -->
+                            <div class="dropdown">
+                            League:
+                            <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if fl %}{{fl}}{% else %}All{% endif %}
+                            </button>
+                            &nbsp;
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                <li>
+                                    <a class="dropdown-item {% if not fl %}active{% endif %}" href="?fl=All&fd={{fd}}">All</a>
+                                </li>  
+                                {% for fixtureleague in fixtureleagues %}
+                                <li>
+                                    <a class="dropdown-item {% if fl == fixtureleague.League %}active{% endif %}" href="?fl={{fixtureleague.League}}&fd={{fd}}">{{fixtureleague.League}}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            </div>
+        
+                        </div>
+                    </div>
+                     
+                    {% if sortby == 'Match_Date' %}
+                        {% set matchdatebtntype = 'btn btn-secondary btn-sm float-right mr-2' %}
+                    {% else %}
+                        {% set matchdatebtntype = 'btn btn-outline-secondary btn-sm float-right mr-2' %}
+                    {% endif %}
+
+                    {% if sortby == 'Rank_Diff' %}
+                        {% set rankdiffbtntype = 'btn btn-secondary btn-sm float-right mr-2' %}
+                    {% else %}
+                        {% set rankdiffbtntype = 'btn btn-outline-secondary btn-sm float-right mr-2' %}
+                    {% endif %}
+
+                    {% if sortby == 'Home_Rank' %}
+                        {% set homerankbtntype = 'btn btn-secondary btn-sm float-right mr-2' %}
+                    {% else %}
+                        {% set homerankbtntype = 'btn btn-outline-secondary btn-sm float-right mr-2' %}
+                    {% endif %}
+
+                    {% if sortby == 'Away_Rank' %}
+                        {% set awayrankbtntype = 'btn btn-secondary btn-sm float-right mr-2' %}
+                    {% else %}
+                        {% set awayrankbtntype = 'btn btn-outline-secondary btn-sm float-right mr-2' %}
+                    {% endif %}
+                                        
+                    <div class="col-sm-5 col-xs-5 text-end">
+                        <a href="?fd={{fd}}&fl={{fl}}&sortby=Match_Date" class="{{matchdatebtntype}}" role="button">Date</a>
+                        <a href="?fd={{fd}}&fl={{fl}}&sortby=Rank_Diff" class="{{rankdiffbtntype}}" role="button">Rating Diff</a>
+                        <a href="?fd={{fd}}&fl={{fl}}&sortby=Home_Rank" class="{{homerankbtntype}}" role="button">Home Rating</a>
+                        <a href="?fd={{fd}}&fl={{fl}}&sortby=Away_Rank" class="{{awayrankbtntype}}" role="button">Away Rating</a>
+                    </div>
+                </div>
+
+                </div>
+
+            <div class="card-body">
+                <table class="table table-sm table-hover">
+                    <thead>
+                      <tr class="table-dark">
+                        <th scope="col">Select</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">KO</th>
+                        <th scope="col">League</th>
+                        <th scope="col" style="width: 10%" class="text-end">Diff</th>
+                        <th scope="col" class="text-end">H/R</th>
+                        <th scope="col" class="text-end">Home</th>
+                        <th scope="col">&nbsp;</th>
+                        <th scope="col">Away</th>
+                        <th scope="col">A/R</th>
+                        <th scope="col" style="width: 10%">Diff</th>
+                        <th scope="col"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for fixture in fixtures %}
+                        <tr>
+                            <td><button type="button" class="btn btn-warning btn-sm"> .. </button></td>
+                            <td>{{ fixture.Match_Date }}</td>
+                            <td>{{ fixture.Kick_Off}}</td>
+                            <td>{{ fixture.League }}</td>
+                            <!-- add bootstrap progress bar -->
+                            <td>
+                                <!-- if Home_Rank > Away_Rank -->
+                                {% if fixture.Home_Rank < fixture.Away_Rank %}
+                                    <div class="progress bg-white flex-row-reverse" style="height: 20px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{fixture.Rank_Diff_Chart}}%" aria-valuenow="{{fixture.Rank_Diff_Chart}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="text-end"><span class="badge bg-info text-end">{{ fixture.Home_Rank|round(1) }}</span></td>
+                            <td class="text-end fw-bold">{{ fixture.Home_Team }}</td>
+                            <td>&nbsp;</td>
+                            <td class="fw-bold">{{ fixture.Away_Team }}</td>
+                            <td><span class="badge bg-info">{{ fixture.Away_Rank|round(1) }}</span></td>
+                            
+                            <td>
+                                {% if fixture.Home_Rank > fixture.Away_Rank %}
+                                    <div class="progress bg-white" style="height: 20px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{fixture.Rank_Diff_Chart}}%" aria-valuenow="{{fixture.Rank_Diff_Chart}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>                    
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="?l={{fixture.League}}&ht={{fixture.Home_Team}}&at={{fixture.Away_Team}}&fl={{fl}}&fd={{fd}}&sortby={{sortby}}"><i class="fa-solid fa-circle-info text-secondary"></i></a> 
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+        </div>
+        <!-- TABLES -->
+        <div class="col-6">
+            <!-- if leagues exists -->
+            {% if leagues %}
+                <div class="card">
+                    <div class="card-header">
+                    <h3>{{l}} Table</h3>
+                    </div>
+                    <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr class="table-dark">
+                            <th scope="col">Team</th>
+                            <th scope="col">P</th>
+                            <th scope="col">W</th>
+                            <th scope="col">D</th>
+                            <th scope="col">L</th>
+                            <th scope="col">F</th>
+                            <th scope="col">A</th>
+                            <th scope="col">GD</th>
+                            <th scope="col">PTS</th>
+                            <th scope="col">Rating</th>
+                            <th scope="col">SPG</th>
+                            <th scope="col">SOTPG</th>
+                            <th scope="col">CPG</th>
+                            <th scope="col">YCPG</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            {% for league in leagues %}
+
+                            <!-- if ht = league.Team or at = League.Team then add class to tr -->
+                            {% if ht == league.Team or at == league.Team %}
+                            <tr  class="bg-warning">
+                            {% else %}
+                            <tr>
+                            {% endif %}
+                                <td>{{ league.Team }}</td>
+                                <td>{{ league.P|int }}</td>
+                                <td>{{ league.W|int }}</td>
+                                <td>{{ league.D|int }}</td>
+                                <td>{{ league.L|int }}</td>
+                                <td>{{ league.F|int }}</td>
+                                <td>{{ league.A|int }}</td>
+                                <td>{{ league.GD|int }}</td>
+                                <td>{{ league.PTS|int }}</td>
+                                <td>{{ league.Rating|round(1) }}</td>
+                                <td>{{ league.SH_PG }}</td>
+                                <td>{{ league.SHT_PG }}</td>
+                                <td>{{ league.C_PG }}</td>
+                                <td>{{ league.YC_PG }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            {% endif %}
+    
+            <!-- if ht and at exists -->
+            {% if ht and at %}
+            <div class="card mt-2">
+                <div class="card-header">
+                <h3>Recent Form</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- home home recent results -->
+                        <div class="col-6">
+                            <table class="table table-sm">
+                            <tr><td colspan=6><h3><center>{{ ht }}</center></h3></td><td><i class="fa-solid fa-futbol text-danger"></i></td><td><i class="fa-solid fa-futbol text-success"></i></td><td><i class="fa-solid fa-flag text-info"></i></td><td><i class="fa-solid fa-square text-warning"></i></td></tr>
+                            {% for homeresult in homeresults %}
+                                <tr>
+                                <td>{{ homeresult.Date[:10]}}</td>
+                                {% if homeresult.Venue == 'Home' %}
+                                <td><b>{{ homeresult.Team }}</b></td>
+                                {% else %}
+                                <td>{{ homeresult.Opponent }}</td>
+                                {% endif %}
+                                {% if homeresult.Venue == 'Home' %}
+                                <td>{{ homeresult.Goals|int }}</td>
+                                <td>{{ homeresult.GoalsOpponent|int }}</td>
+                                {% else %}
+                                <td>{{ homeresult.GoalsOpponent|int }}</td>
+                                <td>{{ homeresult.Goals|int }}</td>
+                                {% endif %}
+                                {% if homeresult.Venue == 'Home' %}
+                                <td>{{ homeresult.Opponent }}</td>
+                                {% else %}
+                                <td><b>{{ homeresult.Team }}</b></td>
+                                {% endif %}
+                                
+                                <!-- show W D L or loss for ht -->
+                                {% if homeresult.Team == ht and homeresult.Goals > homeresult.GoalsOpponent %}
+                                <td><button type="button" class="btn btn-success btn-sm">W</button></td>
+                                {% elif homeresult.Opponent == ht and homeresult.Goals < homeresult.GoalsOpponent %}
+                                <td><button type="button" class="btn btn-success btn-sm">W</button></td>
+                                {% elif homeresult.Team == ht and homeresult.Goals == homeresult.GoalsOpponent %}
+                                <td><button type="button" class="btn btn-warning btn-sm">D</button></td>
+                                {% elif homeresult.Opponent == ht and homeresult.Goals == homeresult.GoalsOpponent %}
+                                <td><button type="button" class="btn btn-warning btn-sm">D</button></td>
+                                {% else %}
+                                <td><button type="button" class="btn btn-danger btn-sm">L</button></td>
+                                {% endif %}
+                                <td>{{homeresult.Shots + homeresult.ShotsOpponent}}</td>
+                                <td>{{homeresult.ShotsOnTarget + homeresult.ShotsOnTargetOpponent}}</td>
+                                <td>{{homeresult.Corners + homeresult.CornersOpponent}}</td>
+                                <td>{{homeresult.YellowCards + homeresult.YellowCardsOpponent}}</td>
+                                </tr>    
+                            {% endfor %}
+                            </table>
+                        </div>
+                        <!-- away team recent results -->
+                        <div class="col-6">
+                            <table class="table table-sm">
+                                <tr><td colspan=6><h3><center>{{ at }}</center></h3></td><td><i class="fa-solid fa-futbol text-danger"></i></td><td><i class="fa-solid fa-futbol text-success"></i></td><td><i class="fa-solid fa-flag text-info"></i></td><td><i class="fa-solid fa-square text-warning"></i></td></tr>
+                                {% for awayresult in awayresults %}
+                                <tr>
+                                <td>{{ awayresult.Date[:10]}}</td>
+                                {% if awayresult.Venue == 'Home' %}
+                                <td><b>{{ awayresult.Team }}</b></td>
+                                {% else %}
+                                <td>{{ awayresult.Opponent }}</td>
+                                {% endif %}
+                                {% if awayresult.Venue == 'Home' %}
+                                <td>{{ awayresult.Goals|int }}</td>
+                                <td>{{ awayresult.GoalsOpponent|int }}</td>
+                                {% else %}
+                                <td>{{ awayresult.GoalsOpponent|int }}</td>
+                                <td>{{ awayresult.Goals|int }}</td>
+                                {% endif %}
+                                {% if awayresult.Venue == 'Home' %}
+                                <td>{{ awayresult.Opponent }}</td>
+                                {% else %}
+                                <td><b>{{ awayresult.Team }}</b></td>
+                                {% endif %}
+                                <!-- show W D L or loss for at -->
+                                {% if awayresult.Team == at and awayresult.Goals > awayresult.GoalsOpponent %}
+                                <td><button type="button" class="btn btn-success btn-sm">W</button></td>
+                                {% elif awayresult.Opponent == at and awayresult.Goals < awayresult.GoalsOpponent %}
+                                <td><button type="button" class="btn btn-success btn-sm">W</button></td>
+                                {% elif awayresult.Team == at and awayresult.Goals == awayresult.GoalsOpponent %}
+                                <td><button type="button" class="btn btn-warning btn-sm">D</button></td>
+                                {% elif awayresult.Opponent == at and awayresult.Goals == awayresult.GoalsOpponent %}
+                                <td><button type="button" class="btn btn-warning btn-sm">D</button></td>
+                                {% else %}
+                                <td><button type="button" class="btn btn-danger btn-sm">L</button></td>
+                                {% endif %}
+                                <td>{{awayresult.Shots + awayresult.ShotsOpponent}}</td>
+                                <td>{{awayresult.ShotsOnTarget + awayresult.ShotsOnTargetOpponent}}</td>
+                                <td>{{awayresult.Corners + awayresult.CornersOpponent}}</td>
+                                <td>{{awayresult.YellowCards + awayresult.YellowCardsOpponent}}</td>
+                                </tr>    
+                                {% endfor %}
+                                </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-2">
+                <div class="card-header">
+                <h3>Extra Stats</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- home stats -->
+                        <div class="col-3">
+                            <table class="table table-sm text-end">
+                            <tr><th><h3>{{ ht }}</h3></th></tr>    
+                            {% for homeleague in homeleagues %}
+                            <tr><td>{{ homeleague.PPG }}</td></tr>
+                            <tr><td>{{ homeleague.G_PG }}</td></tr>
+                            <tr><td>{{ homeleague.GA_PG }}</td></tr>
+                            <tr><td>{{ homeleague.GD_PG }}</td></tr>
+                            <tr><td>{{ homeleague.YC_PG }}</td></tr>
+                            <tr><td>{{ homeleague.YCA_PG }}</td></tr>
+                            <tr><td>{{ homeleague.RC|int }}</td></tr>
+                            <tr><td>{{ homeleague.SH_PG }}</td></tr>
+                            <tr><td>{{ homeleague.SHA_PG }}</td></tr>
+                            <tr><td>{{ homeleague.SHT_PG }}</td></tr>
+                            <tr><td>{{ homeleague.SHTA_PG }}</td></tr>
+                            <tr><td>{{ homeleague.C_PG }}</td></tr>
+                            <tr><td>{{ homeleague.CA_PG }}</td></tr>
+                            {% endfor %}
+                            </table>
+                        </div>
+
+                        <!-- stats headers -centered -->
+                        <div class="col-6">
+                            <table class="table table-sm text-center">
+                                <tr><td><h3>&nbsp;</h3></td></tr>
+                                <tr><td><b>Points Per Game</b></td></tr>
+                                <tr><td><b>Goals Per Game</b></td></tr>
+                                <tr><td><b>Goals Against Per Game</b></td></tr>
+                                <tr><td><b>Goal Difference Per Game</b></td></tr>
+                                <tr><td><b>Yellow Cards Per Game</b></td></tr>
+                                <tr><td><b>Yellow Cards Against Per Game</b></td></tr>
+                                <tr><td><b>Red Cards</b></td></tr>
+                                <tr><td><b>Shots Per Game</b></td></tr>
+                                <tr><td><b>Shots Against Per Game</b></td></tr>
+                                <tr><td><b>Shots On Target Per Game</b></td></tr>
+                                <tr><td><b>Shots On Target Against Per Game</b></td></tr>
+                                <tr><td><b>Corners Per Game</b></td></tr>
+                                <tr><td><b>Corners Against Per Game</b></td></tr>
+                            </table>
+                        </div>
+
+                        <!-- away stats -->
+                        <div class="col-3">
+                            <table class="table table-sm text-left">
+                            <tr><th><h3>{{ at }}</h3></th></tr>
+                            {% for awayleague in awayleagues %}
+                            <tr><td>{{ awayleague.PPG }}</td></tr>
+                            <tr><td>{{ awayleague.G_PG }}</td></tr>
+                            <tr><td>{{ awayleague.GA_PG }}</td></tr>
+                            <tr><td>{{ awayleague.GD_PG }}</td></tr>
+                            <tr><td>{{ awayleague.YC_PG }}</td></tr>
+                            <tr><td>{{ awayleague.YCA_PG }}</td></tr>
+                            <tr><td>{{ awayleague.RC|int }}</td></tr>
+                            <tr><td>{{ awayleague.SH_PG }}</td></tr>
+                            <tr><td>{{ awayleague.SHA_PG }}</td></tr>
+                            <tr><td>{{ awayleague.SHT_PG }}</td></tr>
+                            <tr><td>{{ awayleague.SHTA_PG }}</td></tr>
+                            <tr><td>{{ awayleague.C_PG }}</td></tr>
+                            <tr><td>{{ awayleague.CA_PG }}</td></tr>
+                            {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-2">
+                <div class="card-header">
+                    <h3>Total Match - Bet Builder Tips</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="alert alert-success text-center" role="alert">
+                                <h1>Shots on Target:<br>{{(((homeleagues[0].SHT_PG + homeleagues[0].SHTA_PG) + (awayleagues[0].SHT_PG + awayleagues[0].SHTA_PG))/2) | int}}</h1>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="alert alert-success text-center" role="alert">
+                                <h1>Yellow Cards:<br>{{(((homeleagues[0].YC_PG + homeleagues[0].YCA_PG) + (awayleagues[0].YC_PG + awayleagues[0].YCA_PG))/2) | int}}</h1>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="alert alert-success text-center" role="alert">
+                                <h1>Corners:<br>{{(((homeleagues[0].C_PG + homeleagues[0].CA_PG) + (awayleagues[0].C_PG + awayleagues[0].CA_PG))/2) | int}}</h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        
+    </div>
+</div>
+{% endblock %}
