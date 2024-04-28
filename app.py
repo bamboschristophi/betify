@@ -110,8 +110,8 @@ def home():
     fixtures=sqlite_to_dict(sql, 'database.db')
 
     # get all selections
-    sql = 'select * from t_selections'
-    selections=sqlite_to_dict(sql, 'database.db')    
+    # sql = 'select * from t_selections'
+    # selections=sqlite_to_dict(sql, 'database.db')    
 
     return render_template('home.html',  
                            fixtures=fixtures, 
@@ -128,7 +128,7 @@ def home():
                            fl=fl,
                            fd=fd,
                            sortby=sortby,
-                           selections=selections
+                        #    selections=selections
                            )
 
 if __name__ == '__main__':
