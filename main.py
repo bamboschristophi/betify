@@ -17,8 +17,7 @@ pd.set_option('display.max_rows', None)
 
 def get_results(league_id):
     # Get Source Data and save to pandas dataframe
-    results = pd.read_csv('https://www.football-data.co.uk/mmz4281/2324/'+league_id+'.csv', parse_dates=['Date'],dayfirst=True, encoding='cp1252')
-    
+    results = pd.read_csv('https://www.football-data.co.uk/mmz4281/2425/'+league_id+'.csv', parse_dates=['Date'],dayfirst=True, encoding='cp1252')            
     # delete column named 'Referee' if it exists
     if 'Referee' in results.columns:
         del results['Referee']
@@ -27,7 +26,7 @@ def get_results(league_id):
     colstokeep = cols[:23]
     # Only keep columns in colstokeep
     results = results[colstokeep]
-s
+
     return results
 
 def process_results(results, games=None):
@@ -39,12 +38,16 @@ def process_results(results, games=None):
 
     # create a column called Team, after Date. Copy HomeTeam to Team
     results_home.insert(1, 'Team', results_home['HomeTeam'])
+    # tirm Team column
+    results_home['Team'] = results_home['Team'].str.strip()
 
     # add columns called Venue with Value 'Home'
     results_home.insert(2, 'Venue', 'Home')
 
     # change AwayTeam to Opponent
     results_home.rename(columns={'AwayTeam': 'Opponent'}, inplace=True)
+    # trim Opponent column
+    results_home['Opponent'] = results_home['Opponent'].str.strip()
 
     # drop HomeTeam column
     results_home.drop('HomeTeam', axis=1, inplace=True)
@@ -136,14 +139,14 @@ def process_results(results, games=None):
     # create a column after 'Draw' called 'Loss' and set value to 1 if Points = 0, else 0
     results_away.insert(10, 'Loss', results_away['Points'].apply(lambda x: 1 if x == 0 else 0))
 
-    # creare a column called 'GoalDifference' and set value to Goals - GoalsOpponent
+    # create a column called 'GoalDifference' and set value to Goals - GoalsOpponent
     results_away.insert(11, 'GoalDifference', results_away['Goals'] - results_away['GoalsOpponent'])
 
     # drop columns FTR, HTR
     results_away.drop(['FTR', 'HTR'], axis=1, inplace=True)
 
-    # join results_home and results_away dataframes usig append
-    results_processed = results_home.append(results_away, ignore_index=True)
+    # join results_home and results_away dataframes using pd.concat
+    results_processed = pd.concat([results_home, results_away], ignore_index=True)
 
     # if games parameter passed, retain the last x results for each team
     if games:
@@ -278,7 +281,8 @@ def get_fixtures():
         source = page.content()
         soup = BeautifulSoup(source, "html.parser")
 
-    cols = ['League','Match_Date', 'Kick_Off','Home_Team', 'Away_Team']
+    cols = ['League','Match_Date', 'Kick_Off','Home_Team', 'Away_Team']    
+    
     fixturelist = []
 
     match_or_league = ""
@@ -286,29 +290,36 @@ def get_fixtures():
     finalleague = ""
 
     fixtures = soup.findAll('tbody')
-    for fixture in fixtures:
+    for fixture in fixtures:        
         matches = fixture.findAll('tr')
         for match in matches:
-            if match.find("th"):
-                match_or_league = match.text
-                if re.match(r'\w', match_or_league):
-                    finaldate = match_or_league.strip()
-                else:
-                    finalleague = match_or_league.strip()
             try:
-                matchcol = match.findAll('td')
-                ko = matchcol[1].text
-                teamsplit = matchcol[0].text.split(" v ")
-                hometeam = teamsplit[0]
-                awayteam = teamsplit[1]
+                if match.find("th"):
+                    match_or_league = match.text
+                    if re.match(r'\w', match_or_league):
+                        finaldate = match_or_league.strip()
+                    else:
+                        finalleague = match_or_league.strip()
+                try:
+                    matchcol = match.findAll('td')
+                    ko = matchcol[1].text
+                    teamsplit = matchcol[0].text.split(" v ")
+                    hometeam = teamsplit[0]
+                    awayteam = teamsplit[1]
+                except:
+                    ko = ""
+                    hometeam = ""
+                    awayteam = ""
+                if hometeam != "":
+                    fixturelist.append([finalleague,finaldate,ko,hometeam,awayteam])    
             except:
-                ko = ""
-                hometeam = ""
-                awayteam = ""
-            if hometeam != "":
-                fixturelist.append([finalleague,finaldate,ko,hometeam,awayteam])
+                pass
 
     final_fixtures = pd.DataFrame(fixturelist, columns=cols)
+    
+    # trim Home_Team and Away_Team columns
+    final_fixtures['Home_Team'] = final_fixtures['Home_Team'].str.strip()
+    final_fixtures['Away_Team'] = final_fixtures['Away_Team'].str.strip()
 
     leagues_to_keep = ['Spanish Segunda',
     'Premier League',
@@ -337,8 +348,8 @@ def get_fixtures():
     sub_list = ["Mon", "Tues" ,"Tue" ,"Weds" ,"Wed", "Thurs", "Thur", "Thu", "Fri", "Sat", "Sun"]
 
     final_fixtures['Match_Date'] = final_fixtures['Match_Date'].str.replace('|'.join(sub_list), '').str.strip()
-    final_fixtures['Day'] = final_fixtures['Match_Date'].str[:2].astype(int)
-    final_fixtures['Month'] = final_fixtures['Match_Date'].str[3:].astype(int)
+    final_fixtures['Day'] = final_fixtures['Match_Date'].str.extract(r'(\d{1,2})')[0].astype(int)
+    final_fixtures['Month'] = final_fixtures['Match_Date'].str.extract(r'(\d{1,2})$')[0].astype(int)
 
     #get this year and last year
     ty = datetime.datetime.now().year
@@ -351,8 +362,11 @@ def get_fixtures():
 
     final_fixtures.drop('Day', axis=1, inplace=True)
     final_fixtures.drop('Month', axis=1, inplace=True)
-    final_fixtures.drop('Year', axis=1, inplace=True)    
+    final_fixtures.drop('Year', axis=1, inplace=True)        
     return(final_fixtures)
+
+
+
 
 # Core Code
 
@@ -363,7 +377,7 @@ engine=sqlalchemy.create_engine('sqlite:///database.db', pool_pre_ping=True)
 
 # leagues to scrape
 leagues = ['E0','E1','E2','E3','SC0','SC1','SC2','SC3','D1','D2','I1','I2','SP1','SP2','F2','N1','B1','P1','T1','G1']
-# leagues = ['F1']
+# leagues = ['E1']
 
 # create empty dataframes
 all_results = pd.DataFrame()
@@ -372,22 +386,26 @@ all_tables = pd.DataFrame()
 # get upcoming fixtures
 print('Getting Upcoming Fixtures')
 all_fixtures = get_fixtures()
+print('Fixtures captured')
 
 # scrape all leagues and create tables
 for league in leagues:
     print('Getting results for ' + league)
     
-    results = get_results(league)
+    results = get_results(league)    
     print('Processing results for ' + league)
     final_results = process_results(results, games=games_to_compute)
     if not results.empty:
         print('Appending results for ' + league + ' to all_results dataframe')
-        all_results = all_results.append(final_results, ignore_index=True) 
+        all_results = pd.concat([all_results, final_results], ignore_index=True)
         print('Creating table for ' + league + ' to all_tables dataframe')
+        # if first column = ï»¿Div change to Div
+        if final_results.columns[0] == 'ï»¿Div':
+            final_results.rename(columns={'ï»¿Div': 'Div'}, inplace=True)        
         table = create_league_table(final_results)
         if not table.empty:
-            print('Appending table for ' + league + 'to all_tables dataframe')
-            all_tables = all_tables.append(table, ignore_index=True)
+            print('Appending table for ' + league + ' to all_tables dataframe')
+            all_tables = pd.concat([all_tables, table], ignore_index=True)
 
 # save results and tables to database
 all_results.to_sql(name='t_results', con=engine, if_exists = 'replace', index=False)
@@ -409,58 +427,6 @@ league_lookups = pd.read_sql_query("select * from t_leagues", engine)
 
 # dispose of the engine
 engine.dispose()
-
-# get distinct leagues in the fixtures
-all_fixtures['League'].unique()
-
-# get distinct list of home and away teams in the fixtures
-fixture_teams = pd.concat([all_fixtures['Home_Team'],all_fixtures['Away_Team']]).unique()
-
-# convert to list
-fixture_teams = fixture_teams.tolist()
-
-# get distinct list of teams in the all_tables dataframe
-table_teams = all_tables['Team'].unique()
-# convert to list
-table_teams = table_teams.tolist()
-
-missing_teams = []
-
-# check if all fixture teams are in the team_lookups dataframe
-print('Teams in fixtures but not in team_lookups')
-for team in fixture_teams:
-    if team not in team_lookups['Alias'].unique():
-        print(team)
-        missing_teams.append(team)
-
-print('Teams in league tables but not in team_lookups')
-# check if all table teams are in the team_lookups dataframe
-for team in table_teams:
-    if team not in team_lookups['Alias'].unique():
-        print(team)
-        missing_teams.append(team)
-
-# use fuzzywuzzy to find nearet match for each mssing team between fixture_teams and table_teams
-import fuzzywuzzy
-from fuzzywuzzy import process
-
-append_list = []
-
-for team in missing_teams:
-    match = process.extractOne(team, table_teams, scorer=fuzzywuzzy.fuzz.token_set_ratio)
-    # append to list
-    # print(team,' - ', match[0], ' - ', match[1])
-    append_list.append([team,match[0],match[1]])
-
-# sort append_list
-append_list.sort(key=lambda x: x[2], reverse=True)
-
-for i in append_list:
-    print(i[0],' - ',i[1],' - ',i[2])
-
-from selenium import __version__  
-# Print the Selenium version 
-print(__version__) 
 
 # run python app.py to start the app from notebook
 # !python app.py
