@@ -178,7 +178,11 @@
                         <th scope="col">&nbsp;</th>
                         <th scope="col">Away</th>
                         <th scope="col">A/R</th>
-                        <th scope="col" style="width: 10%">Diff</th>
+                        <th scope="col" style="width: 10%">Diff</th>    
+                        <th scope="col" class="text-center">Goals</th>                    
+                        <th scope="col" class="text-center">SOT</th>
+                        <th scope="col" class="text-center">Cards</th>
+                        <th scope="col" class="text-center">Corners</th>
                         <th scope="col"></th>
                       </tr>
                     </thead>
@@ -211,6 +215,10 @@
                                     </div>                    
                                 {% endif %}
                             </td>
+                            <td class="text-center">{{ fixture.Predicted_Goals|int }}</td>
+                            <td class="text-center">{{ fixture.Predicted_Shots_On_Target|int }}</td>
+                            <td class="text-center">{{ fixture.Predicted_Cards|int }}</td>
+                            <td class="text-center">{{ fixture.Predicted_Corners|int }}</td>
                             <td class="text-center">
                                 <a href="?l={{fixture.League}}&ht={{fixture.Home_Team}}&at={{fixture.Away_Team}}&fl={{fl}}&fd={{fd}}&sortby={{sortby}}"><i class="fa-solid fa-circle-info text-secondary"></i></a> 
                             </td>
