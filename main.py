@@ -1,4 +1,3 @@
-
 import pandas as pd
 import sqlalchemy
 from sqlalchemy import create_engine
@@ -376,7 +375,7 @@ games_to_compute = 8
 engine=sqlalchemy.create_engine('sqlite:///database.db', pool_pre_ping=True)
 
 # leagues to scrape
-leagues = ['E0','E1','E2','E3','SC0','SC1','SC2','SC3','D1','D2','I1','I2','SP1','SP2','F2','N1','B1','P1','T1','G1']
+leagues = ['E0','E1','E2','E3','SC0','SC1','SC2','SC3','D1','D2','I1','I2','SP1','SP2','F1','F2','N1','B1','P1','T1','G1']
 # leagues = ['E1']
 
 # create empty dataframes
@@ -420,10 +419,6 @@ engine=sqlalchemy.create_engine('sqlite:///database.db', pool_pre_ping=True)
 
 team_lookups = pd.read_sql_query("select * from t_teams", engine)
 league_lookups = pd.read_sql_query("select * from t_leagues", engine)
-
-# # save results and tables to database
-# team_lookups.to_sql(name='t_teams', con=engine, if_exists = 'replace', index=True)
-# league_lookups.to_sql(name='t_leagues', con=engine, if_exists = 'replace', index=True)
 
 # dispose of the engine
 engine.dispose()
