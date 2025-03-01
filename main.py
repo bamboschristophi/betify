@@ -365,18 +365,15 @@ def get_fixtures():
     return(final_fixtures)
 
 
+# ****************************** Core Code - n games ****************************** 
 
-
-# Core Code
-
-games_to_compute = 8
+games_to_compute = 6
 
 # create engine
 engine=sqlalchemy.create_engine('sqlite:///database.db', pool_pre_ping=True)
 
 # leagues to scrape
 leagues = ['E0','E1','E2','E3','SC0','SC1','SC2','SC3','D1','D2','I1','I2','SP1','SP2','F1','F2','N1','B1','P1','T1','G1']
-# leagues = ['E1']
 
 # create empty dataframes
 all_results = pd.DataFrame()
@@ -411,8 +408,52 @@ all_results.to_sql(name='t_results', con=engine, if_exists = 'replace', index=Fa
 all_tables.to_sql(name='t_tables', con=engine, if_exists = 'replace', index=False)
 all_fixtures.to_sql(name='t_fixtures', con=engine, if_exists = 'replace', index=False)
 
+# ****************************** Core Code - season ****************************** 
+
+games_to_compute = 50
+
+# create engine
+engine=sqlalchemy.create_engine('sqlite:///database.db', pool_pre_ping=True)
+
+# leagues to scrape
+leagues = ['E0','E1','E2','E3','SC0','SC1','SC2','SC3','D1','D2','I1','I2','SP1','SP2','F1','F2','N1','B1','P1','T1','G1']
+
+# create empty dataframes
+all_results_season = pd.DataFrame()
+all_tables_season = pd.DataFrame()
+
+# scrape all leagues and create tables
+for league in leagues:
+    print('Getting results for ' + league)
+    
+    results = get_results(league)    
+    print('Processing results for ' + league)
+    final_results_season = process_results(results, games=games_to_compute)
+    if not results.empty:
+        print('Appending results for ' + league + ' to all_results_season dataframe')
+        all_results_season = pd.concat([all_results_season, final_results_season], ignore_index=True)
+        print('Creating table for ' + league + ' to all_tables_season dataframe')
+        # if first column = ï»¿Div change to Div
+        if final_results_season.columns[0] == 'ï»¿Div':
+            final_results_season.rename(columns={'ï»¿Div': 'Div'}, inplace=True)        
+        table = create_league_table(final_results_season)
+        if not table.empty:
+            print('Appending table for ' + league + ' to all_tables_season dataframe')
+            all_tables_season = pd.concat([all_tables_season, table], ignore_index=True)
+
+# save results and tables to database
+all_results_season.to_sql(name='t_results_season', con=engine, if_exists = 'replace', index=False)
+all_tables_season.to_sql(name='t_tables_season', con=engine, if_exists = 'replace', index=False)
+
 # dispose of the engine
 engine.dispose()
+
+
+
+
+
+
+
 
 # create engine
 engine=sqlalchemy.create_engine('sqlite:///database.db', pool_pre_ping=True)

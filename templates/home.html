@@ -168,7 +168,7 @@
                 <table class="table table-sm table-hover">
                     <thead>
                       <tr class="table-dark">
-                        <th scope="col">Select</th>
+                        <th scope="col">-</th>
                         <th scope="col">Date</th>
                         <th scope="col">KO</th>
                         <th scope="col">League</th>
@@ -229,65 +229,127 @@
                 </div>
             </div>
         </div>
+
         <!-- TABLES -->
         <div class="col-6">
-            <!-- if leagues exists -->
-            {% if leagues %}
-                <div class="card">
-                    <div class="card-header">
-                    <h3>{{l}} Table</h3>
-                    </div>
-                    <div class="card-body">
-                    <table class="table table-sm">
-                        <thead>
-                        <tr class="table-dark">
-                            <th scope="col">Team</th>
-                            <th scope="col">P</th>
-                            <th scope="col">W</th>
-                            <th scope="col">D</th>
-                            <th scope="col">L</th>
-                            <th scope="col">F</th>
-                            <th scope="col">A</th>
-                            <th scope="col">GD</th>
-                            <th scope="col">PTS</th>
-                            <th scope="col">Rating</th>
-                            <th scope="col">SPG</th>
-                            <th scope="col">SOTPG</th>
-                            <th scope="col">CPG</th>
-                            <th scope="col">YCPG</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                            {% for league in leagues %}
+            <div class="row">
+                <div class="col-6">
+                    <!-- if leagues exists -->
+                    {% if leaguesseason %}
+                        <div class="card">
+                            <div class="card-header">
+                            <h3>{{l}} Table (Season)</h3>
+                            </div>
+                            <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                <tr class="table-dark">
+                                    <th scope="col">Team</th>
+                                    <th scope="col">P</th>
+                                    <th scope="col">W</th>
+                                    <th scope="col">D</th>
+                                    <th scope="col">L</th>
+                                    <th scope="col">F</th>
+                                    <th scope="col">A</th>
+                                    <th scope="col">GD</th>
+                                    <th scope="col">PTS</th>
+                                    <th scope="col">Rating</th>
+                                    <th scope="col">SPG</th>
+                                    <th scope="col">SOTPG</th>
+                                    <th scope="col">CPG</th>
+                                    <th scope="col">YCPG</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                    {% for league in leaguesseason %}
 
-                            <!-- if ht = league.Team or at = League.Team then add class to tr -->
-                            {% if ht == league.Team or at == league.Team %}
-                            <tr  class="bg-warning">
-                            {% else %}
-                            <tr>
-                            {% endif %}
-                                <td>{{ league.Team }}</td>
-                                <td>{{ league.P|int }}</td>
-                                <td>{{ league.W|int }}</td>
-                                <td>{{ league.D|int }}</td>
-                                <td>{{ league.L|int }}</td>
-                                <td>{{ league.F|int }}</td>
-                                <td>{{ league.A|int }}</td>
-                                <td>{{ league.GD|int }}</td>
-                                <td>{{ league.PTS|int }}</td>
-                                <td>{{ league.Rating|round(1) }}</td>
-                                <td>{{ league.SH_PG }}</td>
-                                <td>{{ league.SHT_PG }}</td>
-                                <td>{{ league.C_PG }}</td>
-                                <td>{{ league.YC_PG }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    </div>
+                                    <!-- if ht = league.Team or at = League.Team then add class to tr -->
+                                    {% if ht == league.Team or at == league.Team %}
+                                    <tr  class="bg-warning">
+                                    {% else %}
+                                    <tr>
+                                    {% endif %}
+                                        <td>{{ league.Team }}</td>
+                                        <td>{{ league.P|int }}</td>
+                                        <td>{{ league.W|int }}</td>
+                                        <td>{{ league.D|int }}</td>
+                                        <td>{{ league.L|int }}</td>
+                                        <td>{{ league.F|int }}</td>
+                                        <td>{{ league.A|int }}</td>
+                                        <td>{{ league.GD|int }}</td>
+                                        <td>{{ league.PTS|int }}</td>
+                                        <td>{{ league.Rating|round(1) }}</td>
+                                        <td>{{ league.SH_PG|round(1) }}</td>
+                                        <td>{{ league.SHT_PG|round(1) }}</td>
+                                        <td>{{ league.C_PG|round(1) }}</td>
+                                        <td>{{ league.YC_PG|round(1) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
-            {% endif %}
-    
+                <div class="col-6">
+                    <!-- if leagues exists -->
+                    {% if leagues %}
+                        <div class="card">
+                            <div class="card-header">
+                            <h3>{{l}} Table (Form {{ leagues[0].P|int }} Games)</h3>
+                            </div>
+                            <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                <tr class="table-dark">
+                                    <th scope="col">Team</th>
+                                    <th scope="col">P</th>
+                                    <th scope="col">W</th>
+                                    <th scope="col">D</th>
+                                    <th scope="col">L</th>
+                                    <th scope="col">F</th>
+                                    <th scope="col">A</th>
+                                    <th scope="col">GD</th>
+                                    <th scope="col">PTS</th>
+                                    <th scope="col">Rating</th>
+                                    <th scope="col">SPG</th>
+                                    <th scope="col">SOTPG</th>
+                                    <th scope="col">CPG</th>
+                                    <th scope="col">YCPG</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                    {% for league in leagues %}
+
+                                    <!-- if ht = league.Team or at = League.Team then add class to tr -->
+                                    {% if ht == league.Team or at == league.Team %}
+                                    <tr  class="bg-warning">
+                                    {% else %}
+                                    <tr>
+                                    {% endif %}
+                                        <td>{{ league.Team }}</td>
+                                        <td>{{ league.P|int }}</td>
+                                        <td>{{ league.W|int }}</td>
+                                        <td>{{ league.D|int }}</td>
+                                        <td>{{ league.L|int }}</td>
+                                        <td>{{ league.F|int }}</td>
+                                        <td>{{ league.A|int }}</td>
+                                        <td>{{ league.GD|int }}</td>
+                                        <td>{{ league.PTS|int }}</td>
+                                        <td>{{ league.Rating|round(1) }}</td>
+                                        <td>{{ league.SH_PG|round(1) }}</td>
+                                        <td>{{ league.SHT_PG|round(1) }}</td>
+                                        <td>{{ league.C_PG|round(1) }}</td>
+                                        <td>{{ league.YC_PG|round(1) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
             <!-- if ht and at exists -->
             {% if ht and at %}
             <div class="card mt-2">

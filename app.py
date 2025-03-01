@@ -29,13 +29,20 @@ def home():
     teamtodel = request.form.get('hometeamtodel')
     print (teamtodel)
 
-    # get league (l) url parameter and pass to league Table query
+    # get league (l) url parameter and pass to league Table query (n games)
     l = request.args.get('l')
     if l:
         sql = 'select * from v_leagues where League = "' + l + '" order by PTS desc, GD desc, F desc'
         leagues=sqlite_to_dict(sql, 'database.db')
     else:
         leagues = ''
+        
+    # get league (l) url parameter and pass to league Table query (season)    
+    if l:
+        sql = 'select * from v_leagues_season where League = "' + l + '" order by PTS desc, GD desc, F desc'
+        leaguesseason=sqlite_to_dict(sql, 'database.db')
+    else:
+        leaguesseason = ''
 
     # get HOME team url parameter and pass to query to get last 6 results and overall stats for team
     ht = request.args.get('ht')
@@ -49,10 +56,10 @@ def home():
         homeresults = ''
         homeleagues = ''
 
-    # get AWAY team url parameter and pass to query to get last 6 results and overall stats for team
+    # get AWAY team url parameter and pass to query to get last n results and overall stats for team
     at = request.args.get('at')
     if at:
-        # get away results last 6 games
+        # get away results last n games
         sql = 'select * from t_results where Team = "' + at + '" order by Date desc limit 8'
         awayresults=sqlite_to_dict(sql, 'database.db')
         sql = 'select * from v_leagues where Team = "' + at + '"'
@@ -116,6 +123,7 @@ def home():
     return render_template('home.html',  
                            fixtures=fixtures, 
                            leagues=leagues, 
+                           leaguesseason=leaguesseason,
                            l=l, 
                            homeresults = homeresults, 
                            awayresults=awayresults, 
